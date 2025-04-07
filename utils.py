@@ -77,6 +77,19 @@ def CIMD(S, a1, b1, c1, a2, b2, c2, max_value=np.inf):
     return min(MI1 - MI2, max_value)
 
 # Compute the conditional independence meta dependence (CIMD)
+def CIMD_limited_normed(S, a1, b1, c1, a2, b2, c2, max_value=np.inf):
+    """Compute the conditional independence meta dependence (CIMD) between indices `a1`, `b1` and indices `a2`, `b2` given indices `c1`, `c2` using covariance matrix `S`"""
+    S_projected = covariance_projection(S, a2, b2, c2)
+    MI1 = conditional_mutual_information(S, a1, b1, c1)
+    MI2 = conditional_mutual_information(S_projected, a1, b1, c1)
+    #print("MI1: {} MI2: {}".format(MI1, MI2))
+    if MI1 > .1 or MI2 > .1:
+        return 0
+    if MI1 < .00001:
+        return 0
+    return min((MI1 - MI2)/MI1, max_value)
+
+# Compute the conditional independence meta dependence (CIMD)
 def CIMD_limited(S, a1, b1, c1, a2, b2, c2, max_value=np.inf):
     """Compute the conditional independence meta dependence (CIMD) between indices `a1`, `b1` and indices `a2`, `b2` given indices `c1`, `c2` using covariance matrix `S`"""
     S_projected = covariance_projection(S, a2, b2, c2)
@@ -85,7 +98,7 @@ def CIMD_limited(S, a1, b1, c1, a2, b2, c2, max_value=np.inf):
     #print("MI1: {} MI2: {}".format(MI1, MI2))
     if MI1 > .1 or MI2 > .1:
         return 0
-    return min(MI1 - MI2, max_value)
+    return min((MI1 - MI2), max_value)
 
 # Compute the FS-CID (difference between the product of the probability of faithfulness violations and the joint probability of faithfulness violation)
 def CI_test_dependence(S, a1, b1, c1, a2, b2, c2, n=20):

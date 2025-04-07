@@ -219,11 +219,11 @@ def compare_all_ci_tests_fs_cid(df, dataset_title, subset_size=50):
     plt.savefig(f'plots/FSCID_{dataset_title.replace(" ", "_")}.pdf', bbox_inches='tight')      
 
 
-################################ Do Experiments with Section 3 Structural Equation Parameters (Figure 1) ##############################
+################################ Do Experiments with Section 4 Structural Equation Parameters (Figure 1) ##############################
 
 # Constant is alpha1 = 1, test A \indep C and B \indep C
-#plot_heatmap('CIMD', [1], np.linspace(-1, 1, 100), np.linspace(-1, 1, 100), CIMD, [0], [2], [], [1], [2], [0])
-#plot_heatmap('CIMD-lim', [1], np.linspace(-1, 1, 100), np.linspace(-1, 1, 100), CIMD_limited, [0], [2], [], [1], [2], [])
+#plot_heatmap('CIMD', [1], np.linspace(-1, 1, 100), np.linspace(-1, 1, 100), CIMD, [0], [2], [], [1], [2], [])
+plot_heatmap('CIMD-lim', [1], np.linspace(-1, 1, 100), np.linspace(-1, 1, 100), CIMD_limited, [0], [2], [], [1], [2], [])
 #plot_heatmap('FS-CID', [1], np.linspace(-1, 1, 100), np.linspace(-1, 1, 100), CI_test_dependence, [0], [2], [], [1], [2], [])
 
 ############################# Do experiments on Real Data (Figure 2 and Figure 3) ###############################
@@ -244,6 +244,7 @@ def real_data_CIMD_matrix_auto_mpg():
     df = df[['mpg', 'displacement', 'horsepower', 'weight', 'acceleration']]
     compare_all_ci_tests(df, dataset_title="Auto MPG")
 
+#plt.clf()
 #real_data_CIMD_matrix_california_housing()
 #plt.clf()
 #real_data_CIMD_matrix_apple_watch_fitbit()
@@ -324,3 +325,32 @@ def alpha2_zero():
     plt.clf()
 
 
+######################
+def CIMD_mixture():
+    alpha1 = 0
+    alpha2 = 1
+    beta = 1 
+    S = covariance_matrix(alpha1, alpha2, beta)
+    S2 = covariance_matrix(0,0,0)
+    n=50
+    data = np.random.multivariate_normal([0, 0, 0], S, n)
+    data2 = np.random.multivariate_normal([0, 0, 0], S2, n)
+    d = np.concatenate((data, data2), axis=0)
+    df = pd.DataFrame(d, columns=['A', 'B', 'C'])
+    compare_all_ci_tests(df, dataset_title="Mixture")
+
+def FS_CID_mixture(): 
+    alpha1 = 0
+    alpha2 = 1
+    beta = 1 
+    S = covariance_matrix(alpha1, alpha2, beta)
+    S2 = covariance_matrix(0,0,0)
+    n=50
+    data = np.random.multivariate_normal([0, 0, 0], S, n)
+    data2 = np.random.multivariate_normal([0, 0, 0], S2, n)
+    d = np.concatenate((data, data2), axis=0)
+    df = pd.DataFrame(d, columns=['A', 'B', 'C'])
+    compare_all_ci_tests_fs_cid(df, dataset_title="Mixture")
+
+#CIMD_mixture()
+#FS_CID_mixture()
