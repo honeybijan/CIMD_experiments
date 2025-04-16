@@ -101,9 +101,34 @@ def CIMD_limited(S, a1, b1, c1, a2, b2, c2, max_value=np.inf):
     return min((MI1 - MI2), max_value)
 
 # Compute the FS-CID (difference between the product of the probability of faithfulness violations and the joint probability of faithfulness violation)
-def CI_test_dependence(S, a1, b1, c1, a2, b2, c2, n=20):
+def CI_test_dependence_lim(S, a1, b1, c1, a2, b2, c2, n=20):
     """Compute the difference between the product of the probability of faithfulness violations and the joint probability of faithfulness violation"""
     # Sample n points using covariance matrix S and find a stochastic version of S
+    S_projected = covariance_projection(S, a2, b2, c2)
+    MI1 = conditional_mutual_information(S, a1, b1, c1)
+    MI2 = conditional_mutual_information(S_projected, a1, b1, c1)
+    #print("MI1: {} MI2: {}".format(MI1, MI2))
+    if MI1 > .1 or MI2 > .1:
+        return 0
+    double_rejects = 0
+    t1_rejects = 0
+    t2_rejects = 0
+    total = 1000
+    for i in range(total):
+        data = np.random.multivariate_normal([0, 0, 0], S, n)
+        suffstat = partial_correlation_suffstat(data)
+        t1 = partial_correlation_test(suffstat, a1, b1, set(c1))
+        t2 = partial_correlation_test(suffstat, a2, b2, set(c2))
+        if (not t1['reject']) and (not t2['reject']):
+            double_rejects += 1
+        if not t1['reject']:
+            t1_rejects += 1
+        if not t2['reject']:
+            t2_rejects += 1
+    return double_rejects / total - ((t1_rejects / total) * (t2_rejects / total))
+
+def CI_test_dependence(S, a1, b1, c1, a2, b2, c2, n=20):
+    """Compute the difference between the product of the probability of faithfulness violations and the joint probability of faithfulness violation"""
     double_rejects = 0
     t1_rejects = 0
     t2_rejects = 0
@@ -138,6 +163,27 @@ def covariance_matrix(alpha1, alpha2, beta):
     S = np.array([[1, cov_ab, cov_ac],
                   [cov_ab, 1 + (alpha1**2), cov_bc],
                   [cov_ac, cov_bc, 1 + (beta**2) + ((alpha2 + (beta * alpha1))**2)]])
+    return S
+
+def stoch_covariance_matrix_normed(alpha1, alpha2, beta, n):
+    """Compute the covariance matrix for a linear function and Gaussian noise using monte carlo"""
+    A = np.random.normal(0, 1, n)
+    B = A * alpha1 + np.random.normal(0, np.sqrt(1 - (alpha1**2)), n)
+    C = A * alpha2 + B * beta + np.random.normal(0, np.sqrt(1 - (alpha2**2) - (beta**2)), n)
+    S = np.cov(np.array([A, B, C]))
+    print(S)
+    return S
+
+# Adjusted so variance is the same for every variable
+def covariance_matrix_normed(alpha1, alpha2, beta):
+    """Compute the covariance matrix for a linear function and Gaussian noise"""
+    #return stoch_covariance_matrix_normed(alpha1, alpha2, beta, 1000)
+    cov_ab = alpha1
+    cov_ac = alpha2 + (alpha1 * beta)
+    cov_bc = alpha1 * (alpha2 + (alpha1 * beta)) + beta*(1 - (alpha1**2))
+    S = np.array([[1, cov_ab, cov_ac],
+                  [cov_ab, 1, cov_bc],
+                  [cov_ac, cov_bc, 1]])
     return S
 
 # takes a list of numbers and returns all possible triples of subsets of size 1, 1, and k

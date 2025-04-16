@@ -10,7 +10,35 @@ from sklearn.datasets import fetch_california_housing
 
 plt.rcParams['text.usetex'] = True
 
-def plot_heatmap(test_type_used, alpha1_range, alpha2_range, beta_range, dependence_function, a1, b1, c1, a2, b2, c2):
+def plot_covariances(alpha1_range, alpha2_range, beta_range, a, b):
+    """Plot covariance matrices for varying alpha1, alpha2 and beta (one must be length 1)"""
+    correlation_values = np.zeros((len(alpha1_range), len(alpha2_range), len(beta_range)))
+    for i, alpha1 in enumerate(alpha1_range):
+        for j, alpha2 in enumerate(alpha2_range):
+            for k, beta in enumerate(beta_range):
+                S = covariance_matrix_normed(alpha1, alpha2, beta)
+                correlation_values[i, j, k] = S[a, b]
+    if len(alpha1_range) == 1:
+        print("alpha1 range is 1")
+        matrix_to_plot = correlation_values[0, :, :]
+        x_range = beta_range
+        y_range = alpha2_range
+    elif len(alpha2_range) == 1:
+        print("alpha2 range is 1")
+        matrix_to_plot = correlation_values[:, 0, :]
+        x_range = beta_range
+        y_range = alpha1_range
+    elif len(beta_range) == 1:
+        print("beta range is 1")
+        matrix_to_plot = correlation_values[:, :, 0]
+        x_range = alpha1_range
+        y_range = alpha2_range
+    plt.imshow(matrix_to_plot, origin='lower', interpolation='nearest', extent=(x_range[0], x_range[-1], y_range[0], y_range[-1]))
+    plt.colorbar()
+    plt.show()
+
+
+def plot_heatmap(test_type_used, alpha1_range, alpha2_range, beta_range, dependence_function, a1, b1, c1, a2, b2, c2, custom_vmax=None):
     """Plot a heatmap for varying alpha1, alpha2 and beta (one must be length 1)"""
     # find the fixed variable
     variable_labels = [r'A', r'B', r'C']
@@ -35,7 +63,7 @@ def plot_heatmap(test_type_used, alpha1_range, alpha2_range, beta_range, depende
     for i, alpha1 in enumerate(alpha1_range):
         for j, alpha2 in enumerate(alpha2_range):
             for k, beta in enumerate(beta_range):
-                S = covariance_matrix(alpha1, alpha2, beta)
+                S = covariance_matrix_normed(alpha1, alpha2, beta)
                 correlation_values[i, j, k] = function_of_S(S)
     # Find the dimension of the fixed variable
     if len(alpha1_range) == 1:
@@ -48,8 +76,8 @@ def plot_heatmap(test_type_used, alpha1_range, alpha2_range, beta_range, depende
         y_range = alpha2_range
         x_label = parameter_labels[2]
         y_label = parameter_labels[1]
-        precision_t1 = lambda alpha2, beta: la.inv(covariance_matrix(alpha1_range[0], alpha2, beta)[np.ix_(a1+b1+c1, a1+b1+c1)])
-        precision_t2 = lambda alpha2, beta: la.inv(covariance_matrix(alpha1_range[0], alpha2, beta)[np.ix_(a2+b2+c2, a2+b2+c2)])
+        precision_t1 = lambda alpha2, beta: la.inv(covariance_matrix_normed(alpha1_range[0], alpha2, beta)[np.ix_(a1+b1+c1, a1+b1+c1)])
+        precision_t2 = lambda alpha2, beta: la.inv(covariance_matrix_normed(alpha1_range[0], alpha2, beta)[np.ix_(a2+b2+c2, a2+b2+c2)])
         faithfulness_violations_xs = beta_range
         faithfulness_violation_ys_t1 = [min_solve(lambda alpha2: precision_t1(alpha2, beta)[0, 1], alpha2_range) for beta in beta_range]
         faithfulness_violation_ys_t2 = [min_solve(lambda alpha2: precision_t2(alpha2, beta)[0, 1], alpha2_range) for beta in beta_range]
@@ -63,8 +91,8 @@ def plot_heatmap(test_type_used, alpha1_range, alpha2_range, beta_range, depende
         y_range = alpha1_range
         x_label = parameter_labels[2]
         y_label = parameter_labels[0]
-        precision_t1 = lambda alpha1, beta: la.inv(covariance_matrix(alpha1, alpha2_range[0], beta)[np.ix_(a1+b1+c1, a1+b1+c1)])
-        precision_t2 = lambda alpha1, beta: la.inv(covariance_matrix(alpha1, alpha2_range[0], beta)[np.ix_(a2+b2+c2, a2+b2+c2)])
+        precision_t1 = lambda alpha1, beta: la.inv(covariance_matrix_normed(alpha1, alpha2_range[0], beta)[np.ix_(a1+b1+c1, a1+b1+c1)])
+        precision_t2 = lambda alpha1, beta: la.inv(covariance_matrix_normed(alpha1, alpha2_range[0], beta)[np.ix_(a2+b2+c2, a2+b2+c2)])
         faithfulness_violations_xs = beta_range
         faithfulness_violation_ys_t1 = [min_solve(lambda alpha1: precision_t1(alpha1, beta)[0, 1], alpha1_range) for beta in beta_range]
         faithfulness_violation_ys_t2 = [min_solve(lambda alpha1: precision_t2(alpha1, beta)[0, 1], alpha1_range) for beta in beta_range]
@@ -78,8 +106,8 @@ def plot_heatmap(test_type_used, alpha1_range, alpha2_range, beta_range, depende
         y_range = alpha2_range
         x_label = parameter_labels[1]
         y_label = parameter_labels[0]
-        precision_t1 = lambda alpha1, alpha2: la.inv(covariance_matrix(alpha1, alpha2, beta_range[0])[np.ix_(a1+b1+c1, a1+b1+c1)])
-        precision_t2 = lambda alpha1, alpha2: la.inv(covariance_matrix(alpha1, alpha2, beta_range[0])[np.ix_(a2+b2+c2, a2+b2+c2)])
+        precision_t1 = lambda alpha1, alpha2: la.inv(covariance_matrix_normed(alpha1, alpha2, beta_range[0])[np.ix_(a1+b1+c1, a1+b1+c1)])
+        precision_t2 = lambda alpha1, alpha2: la.inv(covariance_matrix_normed(alpha1, alpha2, beta_range[0])[np.ix_(a2+b2+c2, a2+b2+c2)])
         faithfulness_violations_xs = alpha2_range
         faithfulness_violation_ys_t1 = [min_solve(lambda alpha1: precision_t1(alpha1, alpha2)[0, 1], alpha1_range) for alpha2 in alpha2_range]
         faithfulness_violation_ys_t2 = [min_solve(lambda alpha1: precision_t2(alpha1, alpha2)[0, 1], alpha1_range) for alpha2 in alpha2_range]
@@ -90,18 +118,18 @@ def plot_heatmap(test_type_used, alpha1_range, alpha2_range, beta_range, depende
     plt.imshow(matrix_to_plot, origin='lower', interpolation='nearest', extent=(x_range[0], x_range[-1], y_range[0], y_range[-1]))
     plt.colorbar()
     not_none = [i for i, item in enumerate(faithfulness_violation_ys_t1) if item[1] is not None]
-    if len(not_none) > 80:
+    if len(not_none) > -1:
         plt.plot(faithfulness_violations_xs, [y[1] for y in faithfulness_violation_ys_t2], label=test2_label, color='blue')
     elif len(not_none) > 0:
         # find minimum of the values that are not none
         index = min([(y[0], i) for i, y in enumerate(faithfulness_violation_ys_t2) if y[1] is not None])[1]
         plt.axvline(x=faithfulness_violations_xs[index], color='blue', label=test2_label)
-    if len(not_none) > 80:
-        plt.plot(faithfulness_violations_xs, [y[1] for y in faithfulness_violation_ys_t1], label=test1_label, color='red', linestyle='dotted')
+    if len(not_none) > -1:
+        plt.plot(faithfulness_violations_xs, [y[1] for y in faithfulness_violation_ys_t1], label=test1_label, color='red')
     elif len(not_none) > 0:
         # find minimum of the values that are not none
         index = min([(y[0], i) for i, y in enumerate(faithfulness_violation_ys_t1) if y[1] is not None])[1]
-        plt.axvline(x=faithfulness_violations_xs[index], color='red', label=test1_label, linestyle='dotted')
+        plt.axvline(x=faithfulness_violations_xs[index], color='red', label=test1_label)
     not_none = [i for i, item in enumerate(faithfulness_violation_ys_t2) if item[1] is not None]
     plt.legend()
     plt.xlabel("${}$".format(x_label), fontsize=20)
@@ -222,12 +250,13 @@ def compare_all_ci_tests_fs_cid(df, dataset_title, subset_size=50):
 ################################ Do Experiments with Section 4 Structural Equation Parameters (Figure 1) ##############################
 
 # Constant is alpha1 = 1, test A \indep C and B \indep C
-#plot_heatmap('CIMD', [1], np.linspace(-1, 1, 100), np.linspace(-1, 1, 100), CIMD, [0], [2], [], [1], [2], [])
-plot_heatmap('CIMD-lim', [1], np.linspace(-1, 1, 100), np.linspace(-1, 1, 100), CIMD_limited, [0], [2], [], [1], [2], [])
-#plot_heatmap('FS-CID', [1], np.linspace(-1, 1, 100), np.linspace(-1, 1, 100), CI_test_dependence, [0], [2], [], [1], [2], [])
+#plot_heatmap('CIMD', [.5], np.linspace(-.5, .5, 100), np.linspace(-.5,.5, 100), CIMD, [0], [2], [], [1], [2], [])
+#plot_heatmap('CIMD-lim', [.5], np.linspace(-.5, .5, 100), np.linspace(-.5,.5, 100), CIMD_limited, [0], [2], [], [1], [2], [])
+#plot_heatmap('FS-CID', [.5], np.linspace(-.5, .5, 100), np.linspace(-.5,.5, 100), CI_test_dependence_lim, [0], [2], [], [1], [2], [])
+
 
 ############################# Do experiments on Real Data (Figure 2 and Figure 3) ###############################
-# CIMD tests
+# CIMDlim tests
 def real_data_CIMD_matrix_california_housing(): 
     housing = fetch_california_housing()
     dropped = ['Latitude', 'Longitude', 'AveBedrms', 'AveOccup']
@@ -244,13 +273,13 @@ def real_data_CIMD_matrix_auto_mpg():
     df = df[['mpg', 'displacement', 'horsepower', 'weight', 'acceleration']]
     compare_all_ci_tests(df, dataset_title="Auto MPG")
 
-#plt.clf()
-#real_data_CIMD_matrix_california_housing()
-#plt.clf()
-#real_data_CIMD_matrix_apple_watch_fitbit()
-#plt.clf()
-#real_data_CIMD_matrix_auto_mpg()
-#plt.clf()
+plt.clf()
+real_data_CIMD_matrix_california_housing()
+plt.clf()
+real_data_CIMD_matrix_apple_watch_fitbit()
+plt.clf()
+real_data_CIMD_matrix_auto_mpg()
+plt.clf()
 
 # FS-CID Tests
 def real_data_FS_CID_matrix_california_housing(): 
@@ -270,12 +299,12 @@ def real_data_FS_CID_matrix_auto_mpg():
     compare_all_ci_tests_fs_cid(df, dataset_title="Auto MPG")
 
 
-#real_data_FS_CID_matrix_california_housing()
-#plt.clf()
-#real_data_FS_CID_matrix_apple_watch_fitbit()
-#plt.clf()
-#real_data_FS_CID_matrix_auto_mpg()
-#plt.clf()
+real_data_FS_CID_matrix_california_housing()
+plt.clf()
+real_data_FS_CID_matrix_apple_watch_fitbit()
+plt.clf()
+real_data_FS_CID_matrix_auto_mpg()
+plt.clf()
 
 
 ############################ Do Experiments with various coefficients set to 0 (Figure 4) ########################
