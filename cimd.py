@@ -232,6 +232,7 @@ def compare_all_ci_tests_fs_cid(df, dataset_title, subset_size=50):
     # plot comparison of pairwise FS-CID, labeling test order
     FSCIDs = T1T2_Counts - np.multiply(T1_Counts, T2_Counts)
     # Create the heatmap
+    plt.rc('text', usetex=True)
     plt.figure(figsize=(8, 8))
     plt.imshow(np.matrix(FSCIDs), interpolation='nearest')
     # Add colorbar
@@ -249,10 +250,10 @@ def compare_all_ci_tests_fs_cid(df, dataset_title, subset_size=50):
 
 ################################ Do Experiments with Section 4 Structural Equation Parameters (Figure 1) ##############################
 
-# Constant is alpha1 = 1, test A \indep C and B \indep C
+# Constant is alpha1 = .5, test A \indep C and B \indep C
 #plot_heatmap('CIMD', [.5], np.linspace(-.5, .5, 100), np.linspace(-.5,.5, 100), CIMD, [0], [2], [], [1], [2], [])
 #plot_heatmap('CIMD-lim', [.5], np.linspace(-.5, .5, 100), np.linspace(-.5,.5, 100), CIMD_limited, [0], [2], [], [1], [2], [])
-#plot_heatmap('FS-CID', [.5], np.linspace(-.5, .5, 100), np.linspace(-.5,.5, 100), CI_test_dependence_lim, [0], [2], [], [1], [2], [])
+plot_heatmap('FS-CID-1000', [.5], np.linspace(-.5, .5, 100), np.linspace(-.5,.5, 100), CI_test_dependence_lim, [0], [2], [], [1], [2], [])
 
 
 ############################# Do experiments on Real Data (Figure 2 and Figure 3) ###############################
@@ -273,13 +274,13 @@ def real_data_CIMD_matrix_auto_mpg():
     df = df[['mpg', 'displacement', 'horsepower', 'weight', 'acceleration']]
     compare_all_ci_tests(df, dataset_title="Auto MPG")
 
-plt.clf()
-real_data_CIMD_matrix_california_housing()
-plt.clf()
-real_data_CIMD_matrix_apple_watch_fitbit()
-plt.clf()
-real_data_CIMD_matrix_auto_mpg()
-plt.clf()
+#plt.clf()
+#real_data_CIMD_matrix_california_housing()
+#plt.clf()
+#real_data_CIMD_matrix_apple_watch_fitbit()
+#plt.clf()
+#real_data_CIMD_matrix_auto_mpg()
+#plt.clf()
 
 # FS-CID Tests
 def real_data_FS_CID_matrix_california_housing(): 
@@ -299,12 +300,12 @@ def real_data_FS_CID_matrix_auto_mpg():
     compare_all_ci_tests_fs_cid(df, dataset_title="Auto MPG")
 
 
-real_data_FS_CID_matrix_california_housing()
-plt.clf()
-real_data_FS_CID_matrix_apple_watch_fitbit()
-plt.clf()
-real_data_FS_CID_matrix_auto_mpg()
-plt.clf()
+#real_data_FS_CID_matrix_california_housing()
+#plt.clf()
+#real_data_FS_CID_matrix_apple_watch_fitbit()
+#plt.clf()
+#real_data_FS_CID_matrix_auto_mpg()
+#plt.clf()
 
 
 ############################ Do Experiments with various coefficients set to 0 (Figure 4) ########################
@@ -353,33 +354,3 @@ def alpha2_zero():
     plot_heatmap('CIMD', np.linspace(-1, 1, 100), [0], np.linspace(-1, 1, 100), CIMD, [1], [2], [], [1], [2], [0])
     plt.clf()
 
-
-######################
-def CIMD_mixture():
-    alpha1 = 0
-    alpha2 = 1
-    beta = 1 
-    S = covariance_matrix(alpha1, alpha2, beta)
-    S2 = covariance_matrix(0,0,0)
-    n=50
-    data = np.random.multivariate_normal([0, 0, 0], S, n)
-    data2 = np.random.multivariate_normal([0, 0, 0], S2, n)
-    d = np.concatenate((data, data2), axis=0)
-    df = pd.DataFrame(d, columns=['A', 'B', 'C'])
-    compare_all_ci_tests(df, dataset_title="Mixture")
-
-def FS_CID_mixture(): 
-    alpha1 = 0
-    alpha2 = 1
-    beta = 1 
-    S = covariance_matrix(alpha1, alpha2, beta)
-    S2 = covariance_matrix(0,0,0)
-    n=50
-    data = np.random.multivariate_normal([0, 0, 0], S, n)
-    data2 = np.random.multivariate_normal([0, 0, 0], S2, n)
-    d = np.concatenate((data, data2), axis=0)
-    df = pd.DataFrame(d, columns=['A', 'B', 'C'])
-    compare_all_ci_tests_fs_cid(df, dataset_title="Mixture")
-
-#CIMD_mixture()
-#FS_CID_mixture()

@@ -101,7 +101,7 @@ def CIMD_limited(S, a1, b1, c1, a2, b2, c2, max_value=np.inf):
     return min((MI1 - MI2), max_value)
 
 # Compute the FS-CID (difference between the product of the probability of faithfulness violations and the joint probability of faithfulness violation)
-def CI_test_dependence_lim(S, a1, b1, c1, a2, b2, c2, n=20):
+def CI_test_dependence_lim(S, a1, b1, c1, a2, b2, c2, n=500):
     """Compute the difference between the product of the probability of faithfulness violations and the joint probability of faithfulness violation"""
     # Sample n points using covariance matrix S and find a stochastic version of S
     S_projected = covariance_projection(S, a2, b2, c2)
@@ -117,8 +117,8 @@ def CI_test_dependence_lim(S, a1, b1, c1, a2, b2, c2, n=20):
     for i in range(total):
         data = np.random.multivariate_normal([0, 0, 0], S, n)
         suffstat = partial_correlation_suffstat(data)
-        t1 = partial_correlation_test(suffstat, a1, b1, set(c1))
-        t2 = partial_correlation_test(suffstat, a2, b2, set(c2))
+        t1 = partial_correlation_test(suffstat, a1[0], b1[0], set(c1))
+        t2 = partial_correlation_test(suffstat, a2[0], b2[0], set(c2))
         if (not t1['reject']) and (not t2['reject']):
             double_rejects += 1
         if not t1['reject']:
@@ -136,8 +136,8 @@ def CI_test_dependence(S, a1, b1, c1, a2, b2, c2, n=20):
     for i in range(total):
         data = np.random.multivariate_normal([0, 0, 0], S, n)
         suffstat = partial_correlation_suffstat(data)
-        t1 = partial_correlation_test(suffstat, a1, b1, set(c1))
-        t2 = partial_correlation_test(suffstat, a2, b2, set(c2))
+        t1 = partial_correlation_test(suffstat, a1[0], b1[0], set(c1))
+        t2 = partial_correlation_test(suffstat, a2[0], b2[0], set(c2))
         if (not t1['reject']) and (not t2['reject']):
             double_rejects += 1
         if not t1['reject']:
