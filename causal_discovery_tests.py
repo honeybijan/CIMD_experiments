@@ -236,6 +236,19 @@ def run_experiment(p=15, expected_parents=2,
             )
             cimd_time = time.time() - t0
 
+            # ---- Diagnostic: are CIMD thresholds actually varying across edges,
+            # or are we trivially uniform-shrinking? ----
+            iu = np.triu_indices(p, k=1)
+            cimd_edge_alphas = alpha_c_matrix[iu]
+            bonf_edge_alphas = alpha_b_matrix[iu]
+            ratio = cimd_edge_alphas / bonf_edge_alphas  # >1 ⇒ CIMD is less strict
+            cimd_alpha_mean = float(cimd_edge_alphas.mean())
+            cimd_alpha_std  = float(cimd_edge_alphas.std())
+            cimd_alpha_cv   = cimd_alpha_std / cimd_alpha_mean if cimd_alpha_mean > 0 else 0.0
+            ratio_min = float(ratio.min())
+            ratio_max = float(ratio.max())
+            ratio_mean = float(ratio.mean())
+
             # 2. Run custom PC three times: vanilla (uncalibrated), Bonf, CIMD.
             # Vanilla = same alpha (no correction) on every test, applied through
             # the same skeleton routine so the comparison is apples-to-apples.
@@ -251,6 +264,10 @@ def run_experiment(p=15, expected_parents=2,
             rows.append(dict(
                 seed=seed, N=N,
                 n_tests=n_tests, n_eff=n_eff, mean_red=mean_red,
+                cimd_alpha_mean=cimd_alpha_mean,
+                cimd_alpha_std=cimd_alpha_std,
+                cimd_alpha_cv=cimd_alpha_cv,
+                ratio_min=ratio_min, ratio_max=ratio_max, ratio_mean=ratio_mean,
                 shd_van=shd_v, prec_van=prec_v, rec_van=rec_v, f1_van=f1_v,
                 shd_bonf=shd_b, prec_bonf=prec_b, rec_bonf=rec_b, f1_bonf=f1_b,
                 shd_cimd=shd_c, prec_cimd=prec_c, rec_cimd=rec_c, f1_cimd=f1_c,
@@ -259,7 +276,8 @@ def run_experiment(p=15, expected_parents=2,
 
             print(f"  seed={seed} N={N}: SHD van={shd_v} bonf={shd_b} cimd={shd_c} | "
                   f"F1 van={f1_v:.3f} bonf={f1_b:.3f} cimd={f1_c:.3f} "
-                  f"(n_eff={n_eff:.0f}, global_mean_red={mean_red:.3f})")
+                  f"(n_eff={n_eff:.0f}, mean_red={mean_red:.3f}, "
+                  f"α_CV={cimd_alpha_cv:.3f}, ratio∈[{ratio_min:.2f},{ratio_max:.2f}])")
 
     return pd.DataFrame(rows)
 
@@ -396,7 +414,7 @@ if __name__ == '__main__':
         p=18,
         expected_parents=1,
         sample_sizes=(500, 1000, 2000, 3500, 5000),
-        n_seeds=10,
+        n_seeds=5,
         alpha=0.05,
         max_cond_size=3
     )
